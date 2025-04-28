@@ -20,7 +20,7 @@ app.use('/authors', authorRoutes);
 app.use('/blogposts', blogPostRoutes);
 
 app.get('/', (req, res) => {
-  res.send('Hello from MyBolgProgect!');
+  res.send('Hello from MyBlogProgect!');
 });
 
 // DB connection & server start

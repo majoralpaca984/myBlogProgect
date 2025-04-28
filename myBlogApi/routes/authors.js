@@ -1,19 +1,20 @@
 import express from 'express';
+import multer from 'multer';
+import { storage } from '../config/cloudinary.js';
 import Author from '../models/authorModels.js';
 
 const router = express.Router();
+const upload = multer({ storage });
 
 router.get('/', async (req, res) => {
-  const { page = 1, limit = 10 } = req.query;
   try {
-    const authors = await Author.find()
-      .skip((page - 1) * limit)
-      .limit(parseInt(limit));
-    res.status(200).json(authors);
+    const authors = await Author.find(); 
+    res.json(authors); 
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ error: err.message }); 
   }
 });
+
 
 router.get('/:id', async (req, res) => {
   try {
@@ -57,5 +58,26 @@ router.delete('/:id', async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 });
+
+
+// PATCH avatar upload
+router.patch('/:id/avatar', upload.single('avatar'), async (req, res) => {
+  try {
+    console.log(req.file);
+    const updated = await Author.findByIdAndUpdate(
+      req.params.id,
+      { avatar: req.file.path },
+      { new: true }
+    );
+    if (!updated) {
+      return res.status(404).json({ message: 'Autore non trovato' });
+    }
+    res.status(200).json(updated);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: err.message });
+  }
+});
+
 
 export default router;

@@ -1,7 +1,10 @@
 import express from 'express';
+import multer from 'multer';
+import { storage } from '../config/cloudinary.js';
 import BlogPost from '../models/blogPostModel.js';
 
 const router = express.Router();
+const upload = multer({ storage });
 
 router.get('/', async (req, res) => {
   const { page = 1, limit = 10 } = req.query;
@@ -56,6 +59,27 @@ router.delete('/:id', async (req, res) => {
     res.status(204).send();
   } catch (err) {
     res.status(500).json({ message: err.message });
+  }
+});
+
+// putch avatar
+router.patch('/:id/cover', upload.single('cover'), async (req, res, next) => {
+  try {
+    console.log(req.file); 
+
+    const updated = await BlogPost.findByIdAndUpdate(
+      req.params.id,
+      { cover: req.file.path }, 
+      { new: true }
+    );
+
+    if (!updated) {
+      return res.status(404).json({ message: 'Post non trovato' });
+    }
+
+    res.status(200).json(updated);
+  } catch (err) {
+    next(err);
   }
 });
 
