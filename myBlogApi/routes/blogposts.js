@@ -1,7 +1,10 @@
 import express from 'express';
 import multer from 'multer';
+import dotenv from 'dotenv';
 import { storage } from '../config/cloudinary.js';
 import BlogPost from '../models/blogPostModel.js';
+import { authMiddleware } from '../middleware/authMiddleware.js';    
+
 
 const router = express.Router();
 const upload = multer({ storage });
@@ -29,7 +32,7 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-router.post('/', async (req, res) => {
+router.post('/', authMiddleware, async (req, res) => {
   try {
     const newPost = new BlogPost(req.body);
     const saved = await newPost.save();
@@ -39,7 +42,7 @@ router.post('/', async (req, res) => {
   }
 });
 
-router.put('/:id', async (req, res) => {
+router.put('/:id', authMiddleware, async (req, res) => {
   try {
     const updated = await BlogPost.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
@@ -52,7 +55,7 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authMiddleware, async (req, res) => {
   try {
     const deleted = await BlogPost.findByIdAndDelete(req.params.id);
     if (!deleted) return res.status(404).json({ message: 'Post non trovato' });
