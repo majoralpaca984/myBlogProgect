@@ -1,4 +1,6 @@
-import React from "react";
+
+import React, { useEffect } from "react";
+
 import NavBar from "./components/navbar/BlogNavbar";
 import Footer from "./components/footer/Footer";
 import Home from "./views/home/Home";
@@ -7,6 +9,17 @@ import NewBlogPost from "./views/new/New";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 function App() {
+
+  const fetcAuthors = async () => {
+    const res = await fetch(process.env.REACT_APP_APIURL + "/authors",);
+    const data = await res.json();
+    console.log(data);
+  }
+
+  useEffect(() => {
+    fetcAuthors();
+  }, []);
+
   return (
     <Router>
       <NavBar />

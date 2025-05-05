@@ -62,7 +62,7 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
-// putch avatar
+// putch 
 router.patch('/:id/cover', upload.single('cover'), async (req, res, next) => {
   try {
     console.log(req.file); 
@@ -82,5 +82,99 @@ router.patch('/:id/cover', upload.single('cover'), async (req, res, next) => {
     next(err);
   }
 });
+
+
+// Commenti
+// GET tutti i commenti
+router.get('/:id/comments', async (req, res) => {
+  try {
+    const post = await BlogPost.findById(req.params.id);
+    if (!post) return res.status(404).json({ message: 'Post non trovato' });
+
+    res.status(200).json(post.comments);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// GET un commento specifico
+router.get('/:id/comments/:commentId', async (req, res) => {
+  try {
+    const post = await BlogPost.findById(req.params.id);
+    if (!post) return res.status(404).json({ message: 'Post non trovato' });
+
+    const comment = post.comments.id(req.params.commentId);
+    if (!comment) return res.status(404).json({ message: 'Commento non trovato' });
+
+    res.status(200).json(comment);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+
+// POST  aggiunge un commento a un post
+router.post('/:id/comments', async (req, res) => {
+  try {
+    const post = await BlogPost.findById(req.params.id);
+    if (!post) return res.status(404).json({ message: 'Post non trovato' });
+
+    const newComment = {
+      userName: req.body.userName,
+      text: req.body.text,
+      rating: req.body.rating,
+    };
+
+    post.comments.push(newComment); 
+    await post.save();
+
+    // restituisco l'ultimo commento (quello appena aggiunto)
+    res.status(201).json(post.comments[post.comments.length - 1]);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+// putch  modifica un commento
+router.put('/:id/comments/:commentId', async (req, res) => {
+  try {
+    const post = await BlogPost.findById(req.params.id);
+    if (!post) return res.status(404).json({ message: 'Post non trovato' });
+
+    const comment = post.comments.id(req.params.commentId);
+    if (!comment) return res.status(404).json({ message: 'Commento non trovato' });
+    // Aggiorno solo i campi che sono stati passati nel body
+    comment.userName = req.body.userName ?? comment.userName;
+    comment.text = req.body.text ?? comment.text;
+    comment.rating = req.body.rating ?? comment.rating;
+
+    await post.save();
+
+    res.status(200).json(comment);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+// DELETE  elimina un commento
+router.delete('/:id/comments/:commentId', async (req, res) => {
+  try {
+    const post = await BlogPost.findById(req.params.id);
+    if (!post) return res.status(404).json({ message: 'Post non trovato' });
+
+    const comment = post.comments.id(req.params.commentId);
+    if (!comment) return res.status(404).json({ message: 'Commento non trovato' });
+
+    comment.deleteOne(); 
+    await post.save();
+
+    res.status(204).send();
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+
+
 
 export default router;
